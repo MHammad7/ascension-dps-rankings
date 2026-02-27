@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ascension DPS Rankings by Class</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      color: #333;
+      min-height: 100vh;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    h1 { margin-bottom: 10px; color: white; font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .subtitle { color: rgba(255,255,255,0.9); margin-bottom: 30px; font-size: 1.1rem; }
+    .controls {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      background: #667eea;
+      color: white;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    button:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(102,126,234,0.4); }
+    #status {
+      margin-bottom: 15px;
+      padding: 12px 15px;
+      border-radius: 4px;
+      font-weight: 500;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    #status.loading { background: #e7f3ff; color: #0056b3; }
+    #status.success { background: #d4edda; color: #155724; }
+    #status.error { background: #f8d7da; color: #721c24; }
+    
+    .class-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.2s;
+      border-left: 5px solid #ccc;
+      position: relative;
+    }
+    
+    .class-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    }
+    
+    .class-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: white;
+      margin-bottom: 12px;
+    }
+    
+    .rank-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #FFD700;
+      color: #333;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .stat {
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .stat-label {
+      color: #666;
+      font-weight: 500;
+    }
+    
+    .stat-value {
+      color: #667eea;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    
+    .top-player {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+      font-size: 0.9rem;
+    }
+    
+    .top-player-name {
+      color: #333;
+      font-weight: 600;
+    }
+    
+    .top-player-points {
+      color: #667eea;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚔️ Class DPS Rankings</h1>
+    <p class="subtitle">Molten Core • Ascended Difficulty • Phase 2 • Aggregated Analysis</p>
+    <div class="controls">
+      <button id="refreshBtn">Refresh Rankings</button>
+    </div>
+    <div id="status"></div>
+    <div id="rankingsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;"></div>
+  </div>
+  <script src="/main.js"></script>
+</body>
+</html>
