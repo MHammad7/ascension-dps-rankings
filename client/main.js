@@ -21,14 +21,16 @@ async function init() {
   const statusDiv = document.getElementById('status');
   const rankingsContainer = document.getElementById('rankingsContainer');
   const refreshBtn = document.getElementById('refreshBtn');
+  const difficultySelect = document.getElementById('difficultySelect');
 
   async function loadClassRankings() {
+    const difficulty = difficultySelect?.value || 'ascended';
     statusDiv.className = 'loading';
-    statusDiv.textContent = 'Loading class rankings...';
+    statusDiv.textContent = `Loading ${difficulty} class rankings...`;
     rankingsContainer.innerHTML = '';
 
     try {
-      const response = await fetch('/api/class-rankings');
+      const response = await fetch(`/api/class-rankings?difficulty=${encodeURIComponent(difficulty)}`);
       if (!response.ok) throw new Error('Failed to fetch class rankings');
         const payload = await response.json();
       if (!payload.ok) throw new Error('API responded with error');
@@ -76,7 +78,7 @@ async function init() {
       });
 
       statusDiv.className = 'success';
-      statusDiv.textContent = `✓ Loaded ${classRankings.length} classes`;
+      statusDiv.textContent = `✓ Loaded ${classRankings.length} classes for ${difficulty} difficulty`;
     } catch (error) {
       statusDiv.className = 'error';
       statusDiv.textContent = `✗ Error: ${error.message}`;
@@ -85,6 +87,7 @@ async function init() {
   }
 
   refreshBtn?.addEventListener('click', loadClassRankings);
+  difficultySelect?.addEventListener('change', loadClassRankings);
 
   // Auto-load on startup
   loadClassRankings();

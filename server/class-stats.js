@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 // Map class names to canonical WoW class names
 const CLASSES = [
   'Rogue', 'Priest', 'Mage', 'Warrior', 'Paladin', 
-  'Hunter', 'Shaman', 'Warlock', 'Druid', 'Death Knight'
+  'Hunter', 'Shaman', 'Warlock', 'Druid'
 ];
 
 const CLASS_MAP = {
@@ -19,21 +19,21 @@ const CLASS_MAP = {
   "deathknight": { name: "Death Knight", color: "#C41F3B" },
 };
 
-async function fetchRankingsForClass(className) {
-  const url = `https://ascensionlogs.gg/rankings/damage/overall?difficulty=ascended&phase=2&location=Molten%20Core&class=${encodeURIComponent(className)}&page=1`;
+async function fetchRankingsForClass(className, difficulty = 'ascended') {
+  const url = `https://ascensionlogs.gg/rankings/damage/overall?difficulty=${encodeURIComponent(difficulty)}&phase=2&location=Molten%20Core&class=${encodeURIComponent(className)}&page=1`;
 
   let browser = null;
   try {
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
     
-    console.log(`Fetching ${className} rankings...`);
+    console.log(`Fetching ${className} rankings for ${difficulty}...`);
     await page.goto(url, { waitUntil: 'load', timeout: 30000 });
     
     try {
       await page.waitForSelector('table tbody tr', { timeout: 10000 });
     } catch {
-      console.warn(`Table timeout for ${className}`);
+      console.warn(`Table timeout for ${className} (${difficulty})`);
     }
 
     const rows = await page.evaluate(() => {
@@ -68,12 +68,12 @@ async function fetchRankingsForClass(className) {
   }
 }
 
-async function fetchAllClassRankings() {
+async function fetchAllClassRankings(difficulty = 'ascended') {
   const classStats = {};
   
   // Fetch data for each class
   for (const className of CLASSES) {
-    const players = await fetchRankingsForClass(className);
+    const players = await fetchRankingsForClass(className, difficulty);
     
     if (players.length > 0) {
       const totalPoints = players.reduce((sum, p) => sum + (p.points || 0), 0);
@@ -97,4 +97,72 @@ async function fetchAllClassRankings() {
   return classStats;
 }
 
-module.exports = { fetchAllClassRankings, fetchRankingsForClass };
+async function fetchAllDifficultiesRankings() {
+  const difficulties = ['mythic', 'heroic', 'normal', 'ascended'];
+  const allDifficultyStats = {};
+  
+  // Fetch data for each difficulty
+  for (const difficulty of difficulties) {
+    console.log(`Fetching all classes for ${difficulty}...`);
+    const diffStats = await fetchAllClassRankings(difficulty);
+    
+    // Merge stats from this difficulty into the overall stats
+    for (const className of CLASSES) {
+      if (!allDifficultyStats[className]) {
+        allDifficultyStats[className] = {
+          class: className,
+          playerCount: 0,
+          totalPoints: 0,
+          maxPoints: 0,
+          minPoints: Infinity,
+          topPlayer: 'N/A',
+          topPlayerPoints: 0,
+          difficultyBreakdown: {}
+        };
+      }
+      
+      if (diffStats[className]) {
+        const stats = diffStats[className];
+        allDifficultyStats[className].playerCount += stats.playerCount;
+        allDifficultyStats[className].totalPoints += stats.totalPoints;
+        allDifficultyStats[className].maxPoints = Math.max(
+          allDifficultyStats[className].maxPoints,
+          stats.maxPoints
+        );
+        allDifficultyStats[className].minPoints = Math.min(
+          allDifficultyStats[className].minPoints,
+          stats.minPoints === Infinity ? Infinity : stats.minPoints
+        );
+        
+        // Track top player across all difficulties
+        if (stats.topPlayerPoints > allDifficultyStats[className].topPlayerPoints) {
+          allDifficultyStats[className].topPlayer = stats.topPlayer;
+          allDifficultyStats[className].topPlayerPoints = stats.topPlayerPoints;
+        }
+        
+        // Store breakdown by difficulty
+        allDifficultyStats[className].difficultyBreakdown[difficulty] = {
+          playerCount: stats.playerCount,
+          avgPoints: stats.avgPoints,
+          maxPoints: stats.maxPoints
+        };
+      }
+    }
+  }
+  
+  // Calculate final averages
+  for (const className of CLASSES) {
+    const stats = allDifficultyStats[className];
+    if (stats.playerCount > 0) {
+      stats.avgPoints = Math.round((stats.totalPoints / stats.playerCount) * 100) / 100;
+    }
+    // Handle minPoints if it was never set
+    if (stats.minPoints === Infinity) {
+      stats.minPoints = stats.maxPoints;
+    }
+  }
+  
+  return allDifficultyStats;
+}
+
+module.exports = { fetchAllClassRankings, fetchRankingsForClass, fetchAllDifficultiesRankings };

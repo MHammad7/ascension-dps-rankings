@@ -38,6 +38,18 @@
       transition: all 0.2s;
     }
     button:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(102,126,234,0.4); }
+    select {
+      padding: 10px 15px;
+      border: 2px solid #667eea;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      background: white;
+      color: #333;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    select:hover { border-color: #5568d3; background: #f9f9f9; }
     #status {
       margin-bottom: 15px;
       padding: 12px 15px;
@@ -131,8 +143,15 @@
 <body>
   <div class="container">
     <h1>⚔️ Class DPS Rankings</h1>
-    <p class="subtitle">Molten Core • Ascended Difficulty • Phase 2 • Aggregated Analysis</p>
+    <p class="subtitle">Molten Core • Phase 2 • Aggregated Analysis</p>
     <div class="controls">
+      <select id="difficultySelect">
+        <option value="overall">Overall (All Difficulties)</option>
+        <option value="mythic">Mythic</option>
+        <option value="heroic">Heroic</option>
+        <option value="normal">Normal</option>
+        <option value="ascended">Ascended</option>
+      </select>
       <button id="refreshBtn">Refresh Rankings</button>
     </div>
     <div id="status"></div>

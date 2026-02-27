@@ -56,18 +56,26 @@ app.get('/api/rankings', async (req, res) => {
 // CLASS-LEVEL DPS RANKINGS (new endpoint - aggregated by class)
 app.get('/api/class-rankings', async (req, res) => {
   try {
-    const { data, cached } = await getClassStats();
+    const difficulty = req.query.difficulty || 'ascended';
+    
+    let diffData;
+    if (difficulty === 'all' || difficulty === 'overall') {
+      diffData = await classStats.fetchAllDifficultiesRankings();
+    } else {
+      diffData = await classStats.fetchAllClassRankings(difficulty);
+    }
     
     // Sort by average points (descending)
-    const sorted = Object.values(data).sort((a, b) => b.avgPoints - a.avgPoints);
+    const sorted = Object.values(diffData).sort((a, b) => b.avgPoints - a.avgPoints);
     
     // Add rank
     const ranked = sorted.map((item, i) => ({
       ...item,
-      classRank: i + 1
+      classRank: i + 1,
+      difficulty: difficulty === 'all' || difficulty === 'overall' ? 'overall' : difficulty
     }));
     
-    res.json({ ok: true, meta: { cached }, data: ranked });
+    res.json({ ok: true, meta: { difficulty }, data: ranked });
   } catch (err) {
     console.error('Error fetching class stats', err);
     res.status(500).json({ ok: false, error: err.message });
